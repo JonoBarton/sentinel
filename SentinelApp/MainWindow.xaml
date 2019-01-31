@@ -5,8 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SentinelApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="376.771" Width="771.884">
+        Title="MainWindow" Height="580.633" Width="771.884" Unloaded="Window_Unloaded" Loaded="MainWindow_OnLoaded">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="40"></RowDefinition>
             <RowDefinition></RowDefinition>
@@ -22,7 +25,8 @@
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="Auto"></RowDefinition>
-                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
@@ -81,8 +85,10 @@
                 <TextBox Grid.Row="4" Grid.Column="1" x:Name="UserTimeLeftTextBox"></TextBox>-->
 
             </Grid>
+            <TextBox   Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Height="250" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          ScrollViewer.VerticalScrollBarVisibility="Visible"  x:Name="Messages"></TextBox>
 
-            <Button VerticalAlignment="Bottom" Grid.Row="5" Grid.Column="1" x:Name="UpdateButton" Click="UpdateButton_Click" Margin="565,0,0,0">Update</Button>
+            <Button VerticalAlignment="Bottom" Grid.Row="6" Grid.Column="1" x:Name="UpdateButton" Click="UpdateButton_Click" Margin="565,0,0,0">Update</Button>
         </Grid>
 
 

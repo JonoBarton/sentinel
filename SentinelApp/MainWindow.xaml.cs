@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,7 +12,11 @@ using System.Windows.Controls;
 using Microsoft.Win32;
 using SentinelData;
 using DateTime = System.DateTime;
-
+using Timer = System.Timers.Timer;
+using ToastNotifications;
+using ToastNotifications.Lifetime;
+using ToastNotifications.Position;
+using ToastNotifications.Messages;
 namespace SentinelApp
 {
     /// <summary>
@@ -24,10 +29,25 @@ namespace SentinelApp
         public List<User> usersList = new List<User>();
         public ObservableCollection<ComboBoxItem> UserItems { get; set; }
         public ComboBoxItem SelectedUser { get; set; }
-
+        public Timer _timer = new Timer();
+        ServiceHost host;
+        private Notifier notifier;
         public MainWindow()
         {
             InitializeComponent();
+
+            host = new ServiceHost(
+                typeof(MessageHandler),
+                    new Uri("net.pipe://localhost"));
+
+            host.AddServiceEndpoint(typeof(IMessage),
+                new NetNamedPipeBinding(),
+                "Message");
+            host.Open();
+
+            _timer.Interval = 1000;
+            _timer.Enabled = true;
+            _timer.Elapsed += _timer_Elapsed;
             DataContext = this;
             UserItems = new ObservableCollection<ComboBoxItem>();
             var cbItem = new ComboBoxItem { Content = "<--Select-->" };
@@ -52,6 +72,16 @@ namespace SentinelApp
             foreach (var user in usersList)
             {
                 UserItems.Add(new ComboBoxItem { Content = user.Name });
+            }
+        }
+
+        private void _timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            var messages = MessageQueue.GetMessages();
+            foreach (var message in messages)
+            {
+                Dispatcher.BeginInvoke(new ThreadStart(() => Messages.Text += Environment.NewLine + message));
+                if (notifier != null) { Dispatcher.BeginInvoke(new ThreadStart(() => notifier.ShowInformation(message))); }
             }
         }
 
@@ -210,6 +240,32 @@ namespace SentinelApp
             {
                 UserItems.Add(new ComboBoxItem { Content = user.Name });
             }
+        }
+
+        private void Window_Unloaded(object sender, RoutedEventArgs e)
+        {
+            notifier.Dispose();
+            host.Close();
+            host = null;
+        }
+
+        private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+        {
+            notifier = new Notifier(cfg =>
+            {
+                cfg.PositionProvider = new WindowPositionProvider(
+                    parentWindow: Application.Current.MainWindow,
+                    corner: Corner.TopRight,
+                    offsetX: 10,
+                    offsetY: 10);
+
+                cfg.LifetimeSupervisor = new TimeAndCountBasedLifetimeSupervisor(
+                    notificationLifetime: TimeSpan.FromSeconds(3),
+                    maximumNotificationCount: MaximumNotificationCount.FromCount(5));
+
+                cfg.Dispatcher = Application.Current.Dispatcher;
+            });
+
         }
     }
 }

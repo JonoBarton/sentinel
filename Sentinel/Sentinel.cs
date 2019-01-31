@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
+using System.ServiceModel;
 using System.ServiceProcess;
 using System.Threading.Tasks;
 using System.Timers;
@@ -105,7 +106,8 @@ namespace Sentinel
             WriteToFile("Getting Users");
             WriteToFile("Finished Getting Users");
             _timer.Elapsed += OnElapsedTime;
-            _timer.Interval = 60000; //number in milisecinds  
+            //_timer.Interval = 60000;
+            _timer.Interval = 10000;
             _timer.Enabled = true;
         }
 
@@ -143,6 +145,7 @@ namespace Sentinel
         {
             try
             {
+                WriteToFile("Service Timer Check");
                 if (_activeUser == null) return;
                 var loginData = _activeUser.LoginData.SingleOrDefault(_ =>
                     _.Date.DayOfYear == DateTime.Today.DayOfYear && _.Date.Year == DateTime.Today.Year);
@@ -202,7 +205,7 @@ namespace Sentinel
             {
                 await SetActiveUser();
                 if (_activeUser == null) return;
-                
+
                 WriteToFile("Session Change Detected : " + changeDescription.Reason);
 
                 // check for refesh
@@ -238,6 +241,14 @@ namespace Sentinel
         public void WriteToFile(string message)
         {
             File.AppendAllText("c:\\temp\\slog.txt", $@"{Environment.NewLine} {DateTime.Now} - : {message}");
+            try
+            {
+                MessageQueue.AddMessage($@"{Environment.NewLine} {DateTime.Now} - : {message}");
+            }
+            catch (Exception err)
+            {
+                File.AppendAllText("c:\\temp\\slog.txt", $@"error adding message {err.GetBaseException().Message}");
+            }
         }
     }
 }
