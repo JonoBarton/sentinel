@@ -3,3 +3,10 @@
 ################################################################################
 
 /.vs/Sentinel/v15
+/packages
+/Sentinel/bin
+/Sentinel/obj
+/SentinelApp/bin
+/SentinelApp/obj
+/SentinelData/bin/Debug
+/SentinelData/obj/Debug
